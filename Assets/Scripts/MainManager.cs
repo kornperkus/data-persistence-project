@@ -35,7 +35,7 @@ public class MainManager : MonoBehaviour
         }
 
         if (GameManager.Instance != null)
-            GameManager.Instance.LoadHightScore();
+            GameManager.Instance.LoadRecords();
         hightScoreText.text = GameManager.Instance.GetHightScoreText();
     }
 
@@ -67,6 +67,6 @@ public class MainManager : MonoBehaviour
         m_GameOver = true;
         GameOverText.SetActive(true);
 
-        GameManager.Instance.SaveHightScore(m_Points);
+        GameManager.Instance.SaveRecords(m_Points);
     }
 }

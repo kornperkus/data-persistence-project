@@ -11,10 +11,27 @@ public class UIHandler : MonoBehaviour
 {
     public InputField inputField;
     public Text hightScoreText;
+    public Text leaderboardText;
+
+    public Canvas menuCanva;
+    public Canvas leaderboardCanva;
 
     private void Start() {
         hightScoreText.text = GameManager.Instance.GetHightScoreText();
     }
+
+    private void UpdateLeaderboard() {
+        string leaderboard = "";
+        List<Record> records = GameManager.Instance.recordList;
+        records.Sort(CompareRecord);
+
+        foreach (Record record in records) {
+            leaderboard += $"{record.username} : {record.score}\n";
+        }
+        leaderboardText.text = leaderboard;
+    }
+
+
 
     public void OnStartClicked() {
         string username = inputField.text.Trim();
@@ -24,11 +41,27 @@ public class UIHandler : MonoBehaviour
         }
     }
 
+    public void OnLoaderboardClicked() {
+        UpdateLeaderboard();
+
+        menuCanva.enabled = false;
+        leaderboardCanva.enabled = true;
+    }
+
+    public void OnBackClicked() {
+        menuCanva.enabled = true;
+        leaderboardCanva.enabled = false;
+    }
+
     public void OnExitClicked() {
 #if UNITY_EDITOR
         EditorApplication.ExitPlaymode();
 #else
         Application.Quit();
 #endif
+    }
+
+    private int CompareRecord(Record x, Record y) {
+        return y.score - x.score;
     }
 }

@@ -6,11 +6,14 @@ using System.IO;
 public class GameManager : MonoBehaviour
 {
     public string username;
-    public string oldHightScoreUsername;
-    public int oldHightScore;
+
+    //All records in database
+    public List<Record> recordList = new List<Record>();
+
+    //The highest score in records
+    public Record highestRecord = new Record("Name", 0);
 
     public static GameManager Instance;
-
     private string dataPath;
 
     private void Awake() {
@@ -23,32 +26,43 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         dataPath = Application.persistentDataPath + "savedata.json";
-        LoadHightScore();
+        LoadRecords();
     }
 
     public string GetHightScoreText() {
-        if (oldHightScoreUsername == "")
-            return "Best Score : Name : 0";
-        else
-            return $"Best Score : { oldHightScoreUsername} : {oldHightScore}";
+        return $"Best Score : { highestRecord.username} : {highestRecord.score}";
     }
 
-    public void SaveHightScore(int score) {
-        if (score < oldHightScore) return;
+    public void SaveRecords(int score) {
+        recordList.Add(new Record(username, score));
+        SaveData data = new SaveData(recordList.ToArray());
 
-        SaveData data = new SaveData(username, score);
         string json = JsonUtility.ToJson(data);
         File.WriteAllText(dataPath, json);
     }
 
-    public void LoadHightScore() {
+    public void LoadRecords() {
         if (File.Exists(dataPath)) {
             string json = File.ReadAllText(dataPath);
             SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-            if (data.username != null && data.username != "") {
-                oldHightScoreUsername = data.username;
-                oldHightScore = data.hightScore;
+            if (data == null || data.recordList == null) return;
+
+            if (data.recordList.Length > 0) {
+                recordList.Clear();
+                foreach (Record record in data.recordList) {
+                    recordList.Add(record);
+                }
+                CalculateHighestRecord();
+            }
+        }
+    }
+
+    private void CalculateHighestRecord() {
+        foreach (Record record in recordList) {
+            if (record.score > highestRecord.score) {
+                highestRecord.username = record.username;
+                highestRecord.score = record.score;
             }
         }
     }
@@ -56,12 +70,10 @@ public class GameManager : MonoBehaviour
     [System.Serializable]
     class SaveData
     {
-        public string username;
-        public int hightScore;
+        public Record[] recordList;
 
-        public SaveData(string username, int hightScore) {
-            this.username = username;
-            this.hightScore = hightScore;
+        public SaveData(Record[] recordList) {
+            this.recordList = recordList;
         }
     }
 }
